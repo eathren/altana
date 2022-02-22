@@ -1,5 +1,5 @@
-import React, { useEffect, useState, useRef } from "react";
-import { useParams } from "react-router-dom";
+import { useEffect, useState, useRef } from "react";
+import { useNavigate } from "react-router-dom";
 
 // mui
 import {
@@ -29,6 +29,7 @@ interface Props {
 const myConfig = {
   nodeHighlightBehavior: true,
   height: 1000,
+  width: 1000,
   node: {
     color: "lightgreen",
     size: 120,
@@ -40,23 +41,23 @@ const myConfig = {
 };
 
 const GraphView = (props: Props) => {
-  const [company, setCompany] = useState<any>();
-  const [tradingPartners, setTradingPartners] = useState<any>();
+  const [company, setCompany] = useState<any>({});
+  const [tradingPartners, setTradingPartners] = useState<any>({});
   const [isLoading, setIsLoading] = useState(true);
   const d3Container = useRef(null);
-  const [graphData, setGraphData] = useState<any>();
+  const [graphData, setGraphData] = useState<any>({ nodes: [], links: [] });
+  const navigate = useNavigate();
   useEffect(() => {
     getCompany();
     getTradingPartners();
-    console.log("C", company);
-    console.log("T", tradingPartners);
-  }, []);
+    console.log("UseEffect triggered");
+  }, [props.id]);
 
   const getCompany = async () => {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set("Content-Type", "application/json");
     requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-    await fetch(`https://api.altana.ai/atlas/v1/company/id/${props.id}`, {
+    fetch(`https://api.altana.ai/atlas/v1/company/id/${props.id}`, {
       method: "GET",
       headers: requestHeaders,
     })
@@ -68,7 +69,7 @@ const GraphView = (props: Props) => {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set("Content-Type", "application/json");
     requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-    await fetch(
+    fetch(
       `https://api.altana.ai/atlas/v1/company/id/${props.id}/trading-partners`,
       {
         method: "GET",
@@ -89,25 +90,28 @@ const GraphView = (props: Props) => {
     ],
   };
 
-  const assembleGraphData = () => {
-    const data = tradingPartners;
-    const len = data.num_results;
-    console.log("here2");
-    let nodes = [{ id: props.id }];
-    let links = [];
-    for (let i = 0; i < len; i++) {
-      let id = tradingPartners.companies[i].altana_canon_id;
-      nodes.push({ id: id });
-      links.push({ source: props.id, target: id });
+  const assembleGraphData = async () => {
+    try {
+      const data = tradingPartners;
+      const len = data.num_results;
+      let nodes = [{ id: props.id }];
+      let links = [];
+      for (let i = 0; i < len; i++) {
+        let id = tradingPartners.companies[i].altana_canon_id;
+        let name = tradingPartners.companies[i].company_name;
+        nodes.push({ id: id });
+        links.push({ source: props.id, target: id });
+      }
+      let output = { nodes: nodes, links: links };
+      console.log("ouput", output);
+      setGraphData(output);
+    } catch (err) {
+      console.error(err);
     }
-    console.log("here", nodes, links);
-    let output = { nodes: nodes, links: links };
-    console.log("ouput", output);
-    setGraphData(output);
   };
 
   const onClickNode = function (nodeId: any) {
-    window.alert(`Clicked node ${nodeId}`);
+    navigate(`/company/${nodeId}`);
   };
 
   const onClickLink = function (source: any, target: any) {
@@ -117,14 +121,18 @@ const GraphView = (props: Props) => {
   if (!isLoading) {
     return (
       <div>
-        {company.company_name}
-        <Graph
-          id="graph-id" // id is mandatory
-          data={graphData}
-          config={myConfig}
-          onClickNode={onClickNode}
-          onClickLink={onClickLink}
-        />
+        <Typography variant="h4" sx={{ textAlign: "center" }}>
+          {company.company_name}
+        </Typography>
+        <Container maxWidth="lg">
+          <Graph
+            id="graph-id" // id is mandatory
+            data={graphData}
+            config={myConfig}
+            onClickNode={onClickNode}
+            onClickLink={onClickLink}
+          />
+        </Container>
       </div>
     );
   } else {

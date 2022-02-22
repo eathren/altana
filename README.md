@@ -1,46 +1,30 @@
-# Getting Started with Create React App
+## Altana Search and Node-Graph Render
 
-This project was bootstrapped with [Create React App](https://github.com/facebook/create-react-app).
+### Setup
 
-## Available Scripts
+This project allows the search and render of information based from Altana's API.
 
-In the project directory, you can run:
+First, you will need to supply your own .env file. In the root of the project, just include a .env file, and add the field seen in Example.env.
 
-### `npm start`
+### Installation
 
-Runs the app in the development mode.\
-Open [http://localhost:3000](http://localhost:3000) to view it in the browser.
+Next, install the node-packages. You can use<code> npm i </code>, or <code> yarn add</code>
 
-The page will reload if you make edits.\
-You will also see any lint errors in the console.
+### Running The Program
 
-### `npm test`
+Program can be run with <code> npm start</code> or <code> yarn start</code>, depending on your configuration.
 
-Launches the test runner in the interactive watch mode.\
-See the section about [running tests](https://facebook.github.io/create-react-app/docs/running-tests) for more information.
+### Description.
 
-### `npm run build`
+This program includes a search bar. Input what you want to search for (I have been using Starbucks). After a moment or two, a list will be generated based on the API results. Click one of the results.
 
-Builds the app for production to the `build` folder.\
-It correctly bundles React in production mode and optimizes the build for the best performance.
+This will bring you to a page where two fetches will happen [note 1]. The first will refetch the company information. The other will fetch exclusively the trading-partners of the supplied ID.
 
-The build is minified and the filenames include the hashes.\
-Your app is ready to be deployed!
+If there are relationships, it should then list a node-graph of all the suppliers to that node.
 
-See the section about [deployment](https://facebook.github.io/create-react-app/docs/deployment) for more information.
+Clicking a node will repeat this double fetch, but with the new ID. It can go as long as you have options to click, but each will appear in their own page.
 
-### `npm run eject`
+Note 1:
+It was a bit unessary to use the second trading-partners fetch, as it was a field under the company fetch. But the supplied instructions mentioned to that both were available, so I wanted to include it as an option.
 
-**Note: this is a one-way operation. Once you `eject`, you can’t go back!**
-
-If you aren’t satisfied with the build tool and configuration choices, you can `eject` at any time. This command will remove the single build dependency from your project.
-
-Instead, it will copy all the configuration files and the transitive dependencies (webpack, Babel, ESLint, etc) right into your project so you have full control over them. All of the commands except `eject` will still work, but they will point to the copied scripts so you can tweak them. At this point you’re on your own.
-
-You don’t have to ever use `eject`. The curated feature set is suitable for small and middle deployments, and you shouldn’t feel obligated to use this feature. However we understand that this tool wouldn’t be useful if you couldn’t customize it when you are ready for it.
-
-## Learn More
-
-You can learn more in the [Create React App documentation](https://facebook.github.io/create-react-app/docs/getting-started).
-
-To learn React, check out the [React documentation](https://reactjs.org/).
+Credit: Nolan Braman
