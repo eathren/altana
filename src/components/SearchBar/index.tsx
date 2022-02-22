@@ -70,6 +70,12 @@ const SearchBar = (props: Props) => {
               value={companyName}
               onChange={handleChange}
               onSubmit={searchCompanies}
+              onKeyPress={(e) => {
+                if (e.key === "Enter") {
+                  searchCompanies();
+                  e.preventDefault();
+                }
+              }}
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton

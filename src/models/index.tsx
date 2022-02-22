@@ -20,3 +20,29 @@ export type CompanyContext = {
   suppliers?: string[];
   trading_partners?: string[];
 };
+
+export interface GraphNode {
+  id: number;
+  index: number;
+  name: string;
+  px: number;
+  py: number;
+  size: number;
+  weight: number;
+  x: number;
+  y: number;
+  subindex: number;
+  startAngle: number;
+  endAngle: number;
+  value: number;
+  fixed: boolean;
+  children: GraphNode[];
+  _children: GraphNode[];
+  parent: GraphNode;
+  depth: number;
+}
+
+export interface GraphLink {
+  source: GraphNode;
+  target: GraphNode;
+}
