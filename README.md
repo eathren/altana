@@ -28,3 +28,6 @@ Note 1:
 It was a bit unessary to use the second trading-partners fetch, as it was a field under the company fetch. But the supplied instructions mentioned to that both were available, so I wanted to include it as an option.
 
 Credit: Nolan Braman
+
+![search](https://i.imgur.com/UeBkpgp.png)
+![graph](https://i.imgur.com/4Rq1IXw.png)
