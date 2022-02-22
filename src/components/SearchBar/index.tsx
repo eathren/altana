@@ -4,6 +4,7 @@ import React, { useEffect, useState } from "react";
 import {
   AppBar,
   Box,
+  Container,
   Divider,
   IconButton,
   InputBase,
@@ -14,30 +15,10 @@ import {
 // icons
 import SearchIcon from "@mui/icons-material/Search";
 
+import { Link } from "react-router-dom";
+import { Company, CompanyContext } from "../../models/index";
+
 interface Props {}
-
-type Company = {
-  altana_canon_id?: string;
-  company_context: CompanyContext;
-  company_name: string;
-  data_sources: string[];
-  restrictions: string[];
-  risks: string[];
-};
-
-type CompanyContext = {
-  buyers?: any[];
-  countries_of_destination?: string[];
-  countries_of_operation?: string[];
-  countries_of_origin?: string[];
-  hs_traded?: string[];
-  industries?: string[];
-  number_records?: Number;
-  products_received?: string[];
-  products_sent?: string[];
-  suppliers?: string[];
-  trading_partners?: string[];
-};
 
 const SearchBar = (props: Props) => {
   const [companyName, setCompanyName] = useState("");
@@ -102,7 +83,9 @@ const SearchBar = (props: Props) => {
           </Paper>
         </Toolbar>
       </AppBar>
-      <SearchField companies={companies} isLoading={isLoading} />
+      <Container maxWidth="sm" sx={{ mt: 2 }}>
+        <SearchField companies={companies} isLoading={isLoading} />
+      </Container>
     </div>
   );
 };
@@ -115,20 +98,34 @@ type SearchProps = {
 const SearchField = (props: SearchProps) => {
   const companies: Company[] = props.companies;
   const isLoading: boolean = props.isLoading;
-  console.log("HERE", companies, isLoading);
-  if (!isLoading) {
+  if (!isLoading && companies.length > 0) {
     return (
       <>
         {companies.map((company: Company) => (
           <>
-            {company.company_name}
-            <br />
+            <Link
+              to={`/company/${company.altana_canon_id}`}
+              style={{ textDecoration: "none", cursor: "pointer" }}
+              state={`${company.altana_canon_id}`}
+            >
+              <Typography variant="body1" color="black">
+                {company.company_name}
+              </Typography>
+            </Link>
           </>
         ))}
       </>
     );
+  } else if (!isLoading && companies.length === 0) {
+    return (
+      <>
+        <Typography variant="h5">
+          No data returned for that search. Please try again
+        </Typography>
+      </>
+    );
   } else {
-    return <> Data needed</>;
+    return <></>;
   }
 };
 
