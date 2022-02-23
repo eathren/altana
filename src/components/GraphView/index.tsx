@@ -41,19 +41,14 @@ const myConfig = {
 };
 
 const GraphView = (props: Props) => {
-  const [company, setCompany] = useState<any>({});
-  const [tradingPartners, setTradingPartners] = useState<any>({});
+  const [company, setCompany] = useState<any>({ company_name: "" });
+  const [tradingPartners, setTradingPartners] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
   const d3Container = useRef(null);
   const [graphData, setGraphData] = useState<any>({ nodes: [], links: [] });
   const navigate = useNavigate();
-  useEffect(() => {
-    getCompany();
-    getTradingPartners();
-    console.log("UseEffect triggered");
-  }, [props.id]);
 
-  const getCompany = async () => {
+  const getCompany = () => {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set("Content-Type", "application/json");
     requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
@@ -65,32 +60,7 @@ const GraphView = (props: Props) => {
       .then((json) => setCompany(json));
   };
 
-  const getTradingPartners = async () => {
-    const requestHeaders: HeadersInit = new Headers();
-    requestHeaders.set("Content-Type", "application/json");
-    requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-    fetch(
-      `https://api.altana.ai/atlas/v1/company/id/${props.id}/trading-partners`,
-      {
-        method: "GET",
-        headers: requestHeaders,
-      }
-    )
-      .then((response) => response.json())
-      .then((json) => setTradingPartners(json))
-      .then(() => assembleGraphData())
-      .then(() => setIsLoading(false));
-  };
-
-  const data = {
-    nodes: [{ id: "Harry" }, { id: "Sally" }, { id: "Alice" }],
-    links: [
-      { source: "Harry", target: "Sally" },
-      { source: "Harry", target: "Alice" },
-    ],
-  };
-
-  const assembleGraphData = async () => {
+  const assembleGraphData = () => {
     try {
       const data = tradingPartners;
       const len = data.num_results;
@@ -105,24 +75,47 @@ const GraphView = (props: Props) => {
       let output = { nodes: nodes, links: links };
       console.log("ouput", output);
       setGraphData(output);
+      console.log(isLoading, output);
+      setIsLoading(false);
+      console.log(isLoading, output);
     } catch (err) {
       console.error(err);
     }
   };
 
+  useEffect(() => {
+    setIsLoading(true);
+    const getTradingPartners = async () => {
+      const requestHeaders: HeadersInit = new Headers();
+      requestHeaders.set("Content-Type", "application/json");
+      requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
+      const data = await fetch(
+        `https://api.altana.ai/atlas/v1/company/id/${props.id}/trading-partners`,
+        {
+          method: "GET",
+          headers: requestHeaders,
+        }
+      )
+        .then((response) => response.json())
+        .then((json) => setTradingPartners(json))
+        .then(() => assembleGraphData())
+        .then(() => setIsLoading(false));
+    };
+    getTradingPartners().catch(console.error);
+
+    getCompany();
+    console.log("UseEffect triggered");
+  }, [props.id]);
+
   const onClickNode = function (nodeId: any) {
     navigate(`/company/${nodeId}`);
   };
 
-  const onClickLink = function (source: any, target: any) {
-    window.alert(`Clicked link between ${source} and ${target}`);
-  };
-
-  if (!isLoading) {
+  if (!isLoading && tradingPartners) {
     return (
       <div>
         <Typography variant="h4" sx={{ textAlign: "center" }}>
-          {company.company_name}
+          {company.company_name ? company.company_name : ""}
         </Typography>
         <Container maxWidth="lg">
           <Graph
@@ -130,7 +123,6 @@ const GraphView = (props: Props) => {
             data={graphData}
             config={myConfig}
             onClickNode={onClickNode}
-            onClickLink={onClickLink}
           />
         </Container>
       </div>

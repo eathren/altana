@@ -108,7 +108,7 @@ const SearchField = (props: SearchProps) => {
     return (
       <>
         {companies.map((company: Company) => (
-          <>
+          <div key={company.altana_canon_id}>
             <Link
               to={`/company/${company.altana_canon_id}`}
               style={{ textDecoration: "none", cursor: "pointer" }}
@@ -118,7 +118,7 @@ const SearchField = (props: SearchProps) => {
                 {company.company_name}
               </Typography>
             </Link>
-          </>
+          </div>
         ))}
       </>
     );
