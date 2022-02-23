@@ -3,7 +3,6 @@ import React, { useEffect, useState } from "react";
 // mui
 import {
   AppBar,
-  Box,
   Container,
   Divider,
   IconButton,
@@ -16,7 +15,7 @@ import {
 import SearchIcon from "@mui/icons-material/Search";
 
 import { Link } from "react-router-dom";
-import { Company, CompanyContext } from "../../models/index";
+import { Company } from "../../models/index";
 
 interface Props {}
 
@@ -34,7 +33,6 @@ const SearchBar = (props: Props) => {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set("Content-Type", "application/json");
     requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-    console.log("here");
     await fetch(
       `https://api.altana.ai/atlas/v1/company/search/${companyName}`,
       {
@@ -46,14 +44,12 @@ const SearchBar = (props: Props) => {
       .then((json) => setCompanies(json.companies))
       .then(() => setIsLoading(false));
     console.log(companies);
-  }; // right now the API casts too wide a net. Find the obj name that matches exactly?
+  };
   return (
     <div>
       <AppBar position="static">
         <Toolbar>
-          {/* <Typography variant="h5"> Altana</Typography> */}
           <Paper
-            // component="form"
             sx={{
               p: "2px 4px",
               display: "flex",
@@ -79,7 +75,6 @@ const SearchBar = (props: Props) => {
             />
             <Divider sx={{ height: 28, m: 0.5 }} orientation="vertical" />
             <IconButton
-              //   type="submit"
               sx={{ p: "10px" }}
               aria-label="search"
               onClick={searchCompanies}

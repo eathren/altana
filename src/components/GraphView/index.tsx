@@ -1,129 +1,105 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 // mui
-import {
-  AppBar,
-  Box,
-  Container,
-  Divider,
-  IconButton,
-  InputBase,
-  Paper,
-  Toolbar,
-  Typography,
-} from "@mui/material";
-// icons
-import SearchIcon from "@mui/icons-material/Search";
+import { Container, Typography } from "@mui/material";
 
-import { Link } from "react-router-dom";
-import { Company, CompanyContext } from "../../models/index";
-
-import * as d3 from "d3";
-import { Graph } from "react-d3-graph";
+// custom components
+import Graph from "../Graph";
 
 interface Props {
+  // react-router- passes the param in from pages/Company as a prop.
   id: String;
 }
 
-const myConfig = {
-  nodeHighlightBehavior: true,
-  height: 1000,
-  width: 1000,
-  node: {
-    color: "lightgreen",
-    size: 120,
-    highlightStrokeColor: "blue",
-  },
-  link: {
-    highlightColor: "lightblue",
-  },
-};
-
+// This is the main component for the Company pages. It fetches
+// company trading-partners and names, then renders a node-graph structure
+// on all the tier one suppliers.
 const GraphView = (props: Props) => {
-  const [company, setCompany] = useState<any>({ company_name: "" });
+  const [ID, setID] = useState(props.id);
+  const [company, setCompany] = useState<any>();
   const [tradingPartners, setTradingPartners] = useState<any>();
   const [isLoading, setIsLoading] = useState(true);
-  const d3Container = useRef(null);
-  const [graphData, setGraphData] = useState<any>({ nodes: [], links: [] });
+  const [graphData, setGraphData] = useState<any>({});
   const navigate = useNavigate();
-
-  const getCompany = () => {
+  // this is a fetch for a company given an ID.
+  // at the moment, it only is used for the company name.
+  const getCompany = async () => {
     const requestHeaders: HeadersInit = new Headers();
     requestHeaders.set("Content-Type", "application/json");
     requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-    fetch(`https://api.altana.ai/atlas/v1/company/id/${props.id}`, {
+    await fetch(`https://api.altana.ai/atlas/v1/company/id/${props.id}`, {
       method: "GET",
       headers: requestHeaders,
     })
       .then((response) => response.json())
       .then((json) => setCompany(json));
   };
-
-  const assembleGraphData = () => {
-    try {
-      const data = tradingPartners;
-      const len = data.num_results;
-      let nodes = [{ id: props.id }];
-      let links = [];
-      for (let i = 0; i < len; i++) {
-        let id = tradingPartners.companies[i].altana_canon_id;
-        let name = tradingPartners.companies[i].company_name;
-        nodes.push({ id: id });
-        links.push({ source: props.id, target: id });
+  const getTradingPartners = async () => {
+    const requestHeaders: HeadersInit = new Headers();
+    requestHeaders.set("Content-Type", "application/json");
+    requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
+    await fetch(
+      `https://api.altana.ai/atlas/v1/company/id/${props.id}/trading-partners`,
+      {
+        method: "GET",
+        headers: requestHeaders,
       }
-      let output = { nodes: nodes, links: links };
-      console.log("ouput", output);
-      setGraphData(output);
-      console.log(isLoading, output);
-      setIsLoading(false);
-      console.log(isLoading, output);
-    } catch (err) {
-      console.error(err);
-    }
+    )
+      .then((response) => {
+        if (response.ok) return response.json();
+        throw response;
+      })
+      .then((json) => setTradingPartners(json))
+      .catch((err) => {
+        console.error(err);
+      });
   };
 
   useEffect(() => {
     setIsLoading(true);
-    const getTradingPartners = async () => {
-      const requestHeaders: HeadersInit = new Headers();
-      requestHeaders.set("Content-Type", "application/json");
-      requestHeaders.set("x-api-key", `${process.env.REACT_APP_ALTANA_KEY}`);
-      const data = await fetch(
-        `https://api.altana.ai/atlas/v1/company/id/${props.id}/trading-partners`,
-        {
-          method: "GET",
-          headers: requestHeaders,
-        }
-      )
-        .then((response) => response.json())
-        .then((json) => setTradingPartners(json))
-        .then(() => assembleGraphData())
-        .then(() => setIsLoading(false));
-    };
-    getTradingPartners().catch(console.error);
 
-    getCompany();
-    console.log("UseEffect triggered");
+    // fetch for trading partners, fed into Graph component.
+    getTradingPartners().catch(console.error);
+    getCompany()
+      .catch(console.error)
+      .then(() => setIsLoading(false));
   }, [props.id]);
 
+  // this is how the user navigates to new pages. Or alternatively, with a refactor,
+  // how they would trigger new nodes added to the selected node.
   const onClickNode = function (nodeId: any) {
-    navigate(`/company/${nodeId}`);
+    console.log(nodeId);
+    if (nodeId !== props.id) {
+      setID(nodeId);
+      navigate(`/company/${nodeId}`);
+    }
   };
 
-  if (!isLoading && tradingPartners) {
+  // Main render, shows graph and company name
+  // This render can take a while. Example: Starbucks. 64 nodes takes a few seconds on
+  // a slow connection
+  if (!isLoading && tradingPartners && company) {
+    {
+      console.log(tradingPartners);
+    }
     return (
       <div>
         <Typography variant="h4" sx={{ textAlign: "center" }}>
-          {company.company_name ? company.company_name : ""}
+          {company ? company.company_name : ""}
         </Typography>
         <Container maxWidth="lg">
           <Graph
-            id="graph-id" // id is mandatory
-            data={graphData}
-            config={myConfig}
-            onClickNode={onClickNode}
+            companyId={props.id as string}
+            tradingPartners={tradingPartners}
+            currId={ID}
           />
+
+          {/* {tradingPartners.companies.map((partner: any) => (
+            <div key={partner.altana_canon_id}>
+              <Typography>{partner.company_name} </Typography>
+            </div>
+          ))} */}
         </Container>
       </div>
     );
